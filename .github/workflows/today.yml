@@ -1,0 +1,57 @@
+name: Daily Commit Changes
+
+on:
+        # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  schedule:
+    - cron: "0 0 * * *"  # Runs every day at midnight
+
+    # Triggers the workflow on push or pull request events but only for the "main" branch
+
+jobs:
+  process-daily-changes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Fetch Latest Changes
+        run: git fetch --prune --unshallow
+
+      - name: Get Changed Folders from Today and Yesterday
+        run: |
+          # Get commits from midnight yesterday to now
+          COMMITS=$(git log --since="yesterday" --format="%H")
+
+          if [ -z "$COMMITS" ]; then
+            echo "No commits found in the last 24 hours."
+            exit 0
+          fi
+
+          # Detect all changed folders across the commits
+          echo "$COMMITS" | \
+          xargs -I {} git diff-tree --no-commit-id --name-only -r {} | \
+          grep '/' | awk -F'/' '{OFS="/"; $NF=""; print $0}' | sort -u > changed_folders.txt
+
+          # Check if there are any changes
+          if [ ! -s changed_folders.txt ]; then
+            echo "No folders detected in the last 24 hours."
+            exit 0
+          fi
+
+          # Print the detected folders for logging
+          echo "Changed folders:"
+          cat changed_folders.txt
+
+      - name: Process Each Folder
+        run: |
+          # Process each folder detected in the last step
+          while IFS= read -r folder; do
+            echo "Processing folder: $folder"
+            cd "$folder" || continue
+            # Run your custom commands here
+            ls -l
+            cd - >/dev/null
+          done < changed_folders.txt

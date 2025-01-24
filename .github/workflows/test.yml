@@ -1,0 +1,83 @@
+name: Process Changed Folders by Time Slot
+
+on:
+  schedule:
+    # 4 fixed time slots for 6-hour intervals
+    - cron: "0 0 * * *"   # Slot 1: 00:00:00 - 06:00:00
+    - cron: "0 6 * * *"    # Slot 2: 06:00:00 - 12:00:00
+    - cron: "0 12 * * *"   # Slot 3: 12:00:00 - 18:00:00
+    - cron: "0 18 * * *"   # Slot 4: 18:00:00 - 00:00:00
+
+jobs:
+  process-changed-folders:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Fetch Latest Changes
+        run: git fetch --prune --unshallow
+
+      - name: Determine Time Slot and Process Changes
+        run: |
+          # Get current hour of the day
+          CURRENT_HOUR=$(date +"%H")
+
+          # Determine the start time of the previous 6-hour interval based on the cron job time
+          if [ "$CURRENT_HOUR" -eq "0" ]; then
+            # Slot 1: 00:00 - 06:00
+            START_TIME="$(date +"%Y-%m-%d") 00:00:00"
+            END_TIME="$(date +"%Y-%m-%d") 06:00:00"
+          elif [ "$CURRENT_HOUR" -eq "6" ]; then
+            # Slot 2: 06:00 - 12:00
+            START_TIME="$(date +"%Y-%m-%d") 06:00:00"
+            END_TIME="$(date +"%Y-%m-%d") 12:00:00"
+          elif [ "$CURRENT_HOUR" -eq "12" ]; then
+            # Slot 3: 12:00 - 18:00
+            START_TIME="$(date +"%Y-%m-%d") 12:00:00"
+            END_TIME="$(date +"%Y-%m-%d") 18:00:00"
+          elif [ "$CURRENT_HOUR" -eq "18" ]; then
+            # Slot 4: 18:00 - 00:00
+            START_TIME="$(date +"%Y-%m-%d") 18:00:00"
+            END_TIME="$(date +"%Y-%m-%d") 23:59:59"
+          else
+            echo "Invalid cron job time detected. Exiting."
+            exit 1
+          fi
+
+          echo "Processing changes between $START_TIME and $END_TIME..."
+
+          # Get commits within the specified time range
+          COMMITS=$(git log --since="$START_TIME" --until="$END_TIME" --format="%H")
+
+          if [ -z "$COMMITS" ]; then
+            echo "No commits found between $START_TIME and $END_TIME."
+            exit 0
+          fi
+
+          # Detect all changed folders across the commits
+          echo "$COMMITS" | \
+          xargs -I {} git diff-tree --no-commit-id --name-only -r {} | \
+          grep '/' | awk -F'/' '{OFS="/"; $NF=""; print $0}' | sort -u > changed_folders.txt
+
+          # Check if there are any changes
+          if [ ! -s changed_folders.txt ]; then
+            echo "No folders detected between $START_TIME and $END_TIME."
+            exit 0
+          fi
+
+          # Print the detected folders for logging
+          echo "Changed folders:"
+          cat changed_folders.txt
+
+      - name: Process Each Folder
+        run: |
+          # Process each folder detected in the last step
+          while IFS= read -r folder; do
+            echo "Processing folder: $folder"
+            cd "$folder" || continue
+            # Run your custom commands here
+            ls -l
+            cd - >/dev/null
+          done < changed_folders.txt

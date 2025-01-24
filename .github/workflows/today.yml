@@ -5,7 +5,7 @@ on:
   push:
     branches: [ "main" ]
   schedule:
-    - cron: "0 0 * * *"  # Runs every day at midnight
+    - cron: "*/15 * * * *"  # Runs every day at midnight
 
     # Triggers the workflow on push or pull request events but only for the "main" branch
 
@@ -31,7 +31,7 @@ jobs:
       - name: Get Changed Folders from 12:00 and 18:00 today
         run: |
           # Get commits from 00:00 to 15:00 today
-          COMMITS=$(git log --since="today 15:30" --before="today 20:00" --format="%H")
+          COMMITS=$(git log --since="today 17:15" --before="today 20:00" --format="%H")
 
           if [ -z "$COMMITS" ]; then
             echo "No commits found between 12:00 and 20:00 today."

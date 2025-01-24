@@ -1,0 +1,84 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
+
+
+      - name: Detect and Process Changed Folders
+        run: |
+          #!/bin/bash
+
+          # Fetch the latest changes
+          git fetch --prune --unshallow
+
+          # Get the last commit hash in the timeframe (15 minutes ago to now)
+          LAST_COMMIT=$(git log -n 1 --format="%H" --since="15 minutes ago")
+          if [ -z "$LAST_COMMIT" ]; then
+            echo "No commits found in the specified timeframe (last 15 minutes)."
+            exit 0
+          fi
+          echo "$LAST_COMMIT"
+          # Extract changed files for the specified commit and filter for new folders under 'clients/'
+          CHANGED_FOLDERS=$(git diff-tree --no-commit-id --name-only -r $LAST_COMMIT | grep -E '^clients/[^/]+/' | cut -d '/' -f 2 | sort -u)
+
+          # Check if any folders were detected
+          if [ -z "$CHANGED_FOLDERS" ]; then
+            echo "No changed folders detected under 'clients/'."
+            exit 0
+          fi
+
+          # Output the detected folders
+          echo "Detected changed folders:"
+          echo "$CHANGED_FOLDERS"
+
+          # Run commands for each folder
+          for folder in $CHANGED_FOLDERS; do
+            echo "Running commands for folder: $folder"
+            # Add your specific commands here
+            cd "clients/$folder" || continue
+            echo "Running custom commands in $folder"
+            # Example: npm install or build commands
+            # npm install
+            # npm run build
+            cd - >/dev/null
+            echo "Commands completed for $folder"
+          done
+
+          echo "Processing complete."
+      - name: Detect and Process Changed Folders 2
+        run: |
+          #!/bin/bash
+          testing=$(git diff $(git log --reverse --since=midnight --pretty=format:"%h" | head -1) HEAD)
+          echo "$testing"

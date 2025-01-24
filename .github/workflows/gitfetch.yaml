@@ -1,0 +1,34 @@
+name: Process Changed Clients
+
+on:
+  schedule:
+    - cron: '0 */15 * * *' # Run every 15 minutes
+
+jobs:
+  process-clients:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Determine changed folders
+        id: get_changed_folders
+        run: |
+          git fetch --prune --unshallow
+          git log -n 1 --format="%H" --before="15 minutes ago" --after="30 minutes ago" > last_commit.txt
+          git diff-tree --no-commit-id --name-only -r $(cat last_commit.txt) | grep -E '^clients/[^/]+/' | cut -d '/' -f 2 > changed_folders.txt
+          echo "Detected changed folders:"
+          cat changed_folders.txt
+
+      - name: Process changed folders
+        run: |
+          while IFS= read -r folder; do
+            echo "Processing folder: $folder"
+            # Perform your desired activities on the folder here
+            # Example:
+            # echo "Activities for $folder"
+          done < changed_folders.txt
+
+      - name: Clean up
+        run: |
+          rm -rf last_commit.txt changed_folders.txt

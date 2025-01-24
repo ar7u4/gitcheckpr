@@ -51,19 +51,34 @@ jobs:
           fi
 
           # Detect all changed folders (with full paths) across the commits
-          CHANGED_FOLDERS=$(echo "$LAST_COMMITS" | xargs -I {} git diff-tree --no-commit-id --name-only -r {} | grep '/' | awk -F'/' '{OFS="/"; $NF=""; print $0}' | sort -u)
+          echo "$LAST_COMMITS" | \
+          xargs -I {} git diff-tree --no-commit-id --name-only -r {} | \
+          grep '/' | awk -F'/' '{OFS="/"; $NF=""; print $0}' | sort -u > changed_folders.txt
 
-          if [ -z "$CHANGED_FOLDERS" ]; then
+          # Check if there are any changes
+          if [ ! -s changed_folders.txt ]; then
             echo "No folders detected in the last 15 minutes."
             exit 0
           fi
 
-          # Output the detected folder paths
+          # Print the detected folders for logging
           echo "Changed folders:"
-          echo "$CHANGED_FOLDERS"
+          cat changed_folders.txt
 
-          # Save the changed folders into an environment variable for the next step
-          echo "changed_folders=$CHANGED_FOLDERS" >> $GITHUB_ENV
+      - name: Process Changed Folders
+        if: success()
+        run: |
+          # Read changed folders from the file and process them
+          while IFS= read -r folder; do
+            echo "Processing folder: $folder"
+            cd "$folder" || continue
+
+            # Replace the following lines with your actual folder-specific commands
+            echo "Running tasks in $folder"
+            ls -l
+
+            cd - >/dev/null
+          done < changed_folders.txt
 
 
       - name: Detect and Process Changed Folders 2

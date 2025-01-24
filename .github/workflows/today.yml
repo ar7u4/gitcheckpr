@@ -2,8 +2,8 @@ name: Daily Commit Changes
 
 on:
         # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
+#   push:
+#     branches: [ "main" ]
   schedule:
     - cron: "*/15 * * * *"  # Runs every day at midnight
 
@@ -34,7 +34,7 @@ jobs:
           COMMITS=$(git log --since="today 17:15" --before="today 20:00" --format="%H")
 
           if [ -z "$COMMITS" ]; then
-            echo "No commits found between 12:00 and 20:00 today."
+            echo "No commits found between 12:00 and 22:00 today."
             exit 0
           fi
 

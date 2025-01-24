@@ -10,11 +10,11 @@ on:
   #pull_request:
   #  branches: [ "main" ]
 
-  schedule:
-    # Runs every 15 minutes
-    - cron: "*/15 * * * *"
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+  # schedule:
+  #   # Runs every 15 minutes
+  #   - cron: "*/15 * * * *"
+  # # Allows you to run this workflow manually from the Actions tab
+  # workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:

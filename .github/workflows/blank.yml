@@ -36,47 +36,36 @@ jobs:
           echo test, and deploy your project.
 
 
-      - name: Detect and Process Changed Folders
+      - name: Detect Changed Folders in Last 15 Minutes
+        id: detect-changes
         run: |
-          #!/bin/bash
-
           # Fetch the latest changes
           git fetch --prune --unshallow
 
-          # Get the last commit hash in the timeframe (15 minutes ago to now)
-          LAST_COMMIT=$(git log -n 1 --format="%H" --since="15 minutes ago")
-          if [ -z "$LAST_COMMIT" ]; then
-            echo "No commits found in the specified timeframe (last 15 minutes)."
+          # Get commit hashes from the last 15 minutes
+          LAST_COMMITS=$(git log --since="15 minutes ago" --format="%H")
+
+          if [ -z "$LAST_COMMITS" ]; then
+            echo "No commits found in the last 15 minutes."
             exit 0
           fi
-          echo "$LAST_COMMIT"
-          # Extract changed files for the specified commit and filter for new folders under 'clients/'
-          CHANGED_FOLDERS=$(git diff-tree --no-commit-id --name-only -r $LAST_COMMIT | grep -E '^clients/[^/]+/' | cut -d '/' -f 2 | sort -u)
 
-          # Check if any folders were detected
+          # Detect all changed folders (with full paths) across the commits
+          CHANGED_FOLDERS=$(echo "$LAST_COMMITS" | xargs -I {} git diff-tree --no-commit-id --name-only -r {} | grep '/' | awk -F'/' '{OFS="/"; $NF=""; print $0}' | sort -u)
+
           if [ -z "$CHANGED_FOLDERS" ]; then
-            echo "No changed folders detected under 'clients/'."
+            echo "No folders detected in the last 15 minutes."
             exit 0
           fi
 
-          # Output the detected folders
-          echo "Detected changed folders:"
+          # Output the detected folder paths
+          echo "Changed folders:"
           echo "$CHANGED_FOLDERS"
 
-          # Run commands for each folder
-          for folder in $CHANGED_FOLDERS; do
-            echo "Running commands for folder: $folder"
-            # Add your specific commands here
-            cd "clients/$folder" || continue
-            echo "Running custom commands in $folder"
-            # Example: npm install or build commands
-            # npm install
-            # npm run build
-            cd - >/dev/null
-            echo "Commands completed for $folder"
-          done
+          # Save the changed folders into an environment variable for the next step
+          echo "changed_folders=$CHANGED_FOLDERS" >> $GITHUB_ENV
 
-          echo "Processing complete."
+
       - name: Detect and Process Changed Folders 2
         run: |
           #!/bin/bash

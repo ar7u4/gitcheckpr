@@ -10,23 +10,23 @@ on:
     # Triggers the workflow on push or pull request events but only for the "main" branch
 
 jobs:
-  process-daily-changes:
+  process-changes-today:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Fetch Latest Changes
         run: git fetch --prune --unshallow
 
-      - name: Get Changed Folders from Today and Yesterday
+      - name: Get Changed Folders from 00:00 to 15:00 Today
         run: |
-          # Get commits from midnight yesterday to now
-          COMMITS=$(git log --since="yesterday" --format="%H")
+          # Get commits from 00:00 to 15:00 today
+          COMMITS=$(git log --since="today 00:00:00" --before="today 15:00:00" --format="%H")
 
           if [ -z "$COMMITS" ]; then
-            echo "No commits found in the last 24 hours."
+            echo "No commits found between 00:00 and 15:00 today."
             exit 0
           fi
 
@@ -37,12 +37,12 @@ jobs:
 
           # Check if there are any changes
           if [ ! -s changed_folders.txt ]; then
-            echo "No folders detected in the last 24 hours."
+            echo "No folders detected between 00:00 and 15:00 today."
             exit 0
           fi
 
           # Print the detected folders for logging
-          echo "Changed folders:"
+          echo "Changed folders from 00:00 to 15:00 today:"
           cat changed_folders.txt
 
       - name: Process Each Folder

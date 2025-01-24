@@ -21,7 +21,7 @@ jobs:
           git fetch --prune --unshallow
 
           # Get the last commit hash in the timeframe (15-30 minutes ago)
-          LAST_COMMIT=$(git log -n 1 --format="%H" --since="30 minutes ago" --until="15 minutes ago")
+          LAST_COMMIT=$(git log -n 1 --format="%H" --since="15 minutes ago")
           if [ -z "$LAST_COMMIT" ]; then
             echo "No commits found in the specified timeframe (15-30 minutes ago)."
             exit 0

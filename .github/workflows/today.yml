@@ -20,13 +20,13 @@ jobs:
       - name: Fetch Latest Changes
         run: git fetch --prune --unshallow
 
-      - name: Get Changed Folders from 00:00 to 15:00 Today
+      - name: Get Changed Folders from 12:00 and 18:00 today
         run: |
           # Get commits from 00:00 to 15:00 today
-          COMMITS=$(git log --since="today 15:00:00" --before="today 18:00:00" --format="%H")
+          COMMITS=$(git log --since="today 12:00:00" --before="today 18:00:00" --format="%H")
 
           if [ -z "$COMMITS" ]; then
-            echo "No commits found between 00:00 and 15:00 today."
+            echo "No commits found between 12:00 and 18:00 today."
             exit 0
           fi
 
@@ -42,7 +42,7 @@ jobs:
           fi
 
           # Print the detected folders for logging
-          echo "Changed folders from 00:00 to 15:00 today:"
+          echo "Changed folders from 12:00 and 18:00 today:"
           cat changed_folders.txt
 
       - name: Process Each Folder

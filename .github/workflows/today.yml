@@ -20,6 +20,11 @@ jobs:
       - name: Fetch Latest Changes
         run: git fetch --prune --unshallow
 
+      - name: Log the current time for comparison
+        run: |
+          CURRENT_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+          echo "Current pipeline run time: $CURRENT_TIME"
+
       - name: Get Changed Folders from 12:00 and 18:00 today
         run: |
           # Get commits from 00:00 to 15:00 today

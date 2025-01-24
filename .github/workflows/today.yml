@@ -23,7 +23,7 @@ jobs:
       - name: Get Changed Folders from 12:00 and 18:00 today
         run: |
           # Get commits from 00:00 to 15:00 today
-          COMMITS=$(git log --since="today 12:00:00" --before="today 18:00:00" --format="%H")
+          COMMITS=$(git log --since="today 00:00:00" --before="today 12:00:00" --format="%H")
 
           if [ -z "$COMMITS" ]; then
             echo "No commits found between 12:00 and 18:00 today."

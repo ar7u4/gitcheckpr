@@ -24,15 +24,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        
+
       - name: Upload HTML folder only
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'html' # Updated to only upload the html folder
-          
+          path: 'dashboard/html' # Updated to only upload the html folder
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

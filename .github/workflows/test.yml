@@ -1,13 +1,7 @@
 name: Process Changed Folders by Time Slot
 
-#on:
-  #schedule:
-    # 4 fixed time slots for 6-hour intervals
-    #- cron: "0 0 * * *"   # Slot 1: 00:00:00 - 06:00:00
-    #- cron: "0 6 * * *"    # Slot 2: 06:00:00 - 12:00:00
-    #- cron: "0 12 * * *"   # Slot 3: 12:00:00 - 18:00:00
-    #- cron: "0 18 * * *"   # Slot 4: 18:00:00 - 00:00:00
-
+on:
+  workflow_dispatch:
 jobs:
   process-changed-folders:
     runs-on: ubuntu-latest

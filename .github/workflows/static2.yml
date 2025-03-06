@@ -5,8 +5,8 @@ on:
     branches:
       - test
       - main
-    paths:
-      - 'dashboard/**'
+    # paths:
+    #   - 'dashboard/**'
   workflow_dispatch:
 
 permissions:

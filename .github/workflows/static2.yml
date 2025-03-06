@@ -57,7 +57,7 @@ jobs:
         run: |
           mkdir -p deploy/test deploy/main
           cp -r test-repo/dashboard2/* deploy/test/
-          cp -r main-repo/dashboard2/* deploy/main/
+          cp -r main-repo/dashboard/html/* deploy/main/
 
       # Upload combined artifact for Pages
       - name: Upload Pages Artifact

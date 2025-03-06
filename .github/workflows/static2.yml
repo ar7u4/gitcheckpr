@@ -70,7 +70,7 @@ jobs:
         id: main-deployment
         uses: actions/upload-pages-artifact@v3
         with:
-          path: main-repo/dashboard
+          path: main-repo/dashboard/html
 
       # Deploy to GitHub Pages (Main Repo)
       - name: Deploy Main Repo to GitHub Pages

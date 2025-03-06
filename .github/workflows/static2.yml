@@ -1,0 +1,84 @@
+name: Static Site Deployment
+
+on:
+  push:
+    branches:
+      - test
+      - main
+    paths:
+      - 'dashboard/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  # 1. Build Job for Test Repo
+  build-test-repo:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout Test Repo
+      - name: Checkout Test Repo
+        uses: actions/checkout@v4
+        with:
+          repository: ar7u4/gitcheckpr
+          ref: test
+          path: test-repo
+
+      # Checkout Main Repo
+      - name: Checkout Main Repo
+        uses: actions/checkout@v4
+        with:
+          repository: ar7u4/gitcheckpr
+          ref: main
+          path: main-repo
+
+      # Copy files from main to test
+      - name: Copy Files from Main to Test Repo
+        run: cp -r main-repo/dashboard2 test-repo/dashboard2
+
+      - name: Configure Git
+        run: |
+          cd test-repo
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+      # Commit and push changes to test branch
+      - name: Commit and Push to Test Branch
+        run: |
+          cd test-repo
+          git add dashboard2/
+          git commit -m "Update test branch with main dashboard2 changes" || echo "No changes to commit"
+          git push origin test
+
+      # Upload static files as artifact for Test Repo
+      - name: Upload Test Repo Artifact
+        id: test-deployment
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: test-repo/dashboard2
+
+      # Deploy to GitHub Pages (Test Repo)
+      - name: Deploy Test Repo to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      # Upload static files as artifact for Main Repo
+      - name: Upload Main Repo Artifact
+        id: main-deployment
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: main-repo/dashboard
+
+      # Deploy to GitHub Pages (Main Repo)
+      - name: Deploy Main Repo to GitHub Pages
+        id: deployment-2
+        uses: actions/deploy-pages@v4
+
+      # Output Deployed URLs
+      - name: Display Deployed URLs
+        run: |
+          echo "Test Repo Deployed at: ${{ steps.deployment-2.outputs.page_url }}"
+          echo "Main Repo Deployed at: ${{ steps.deployment.outputs.page_url }}"
